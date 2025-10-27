@@ -2,13 +2,10 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>Kedai Sungi Makmur</title>
+    <title>Menu Kesuma</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <!-- Favicon -->
-    <link href="img/favicon.ico" rel="icon" />
-
-    <!-- Google Web Fonts -->
+    <!-- Font -->
     <link
       href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap"
       rel="stylesheet"
@@ -20,65 +17,49 @@
       rel="stylesheet"
     />
 
-    <!-- Bootstrap -->
-    <link
-      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
-
-    <!-- Custom CSS -->
     <style>
       body {
+        margin: 0;
         font-family: "Montserrat", sans-serif;
         background-color: #f8f9fa;
-        margin: 0;
-        overflow-x: hidden;
       }
 
-      /* Header */
-      .header-section {
-        background: #2e4940;
+      .header {
+        background-color: #2e4940;
         color: white;
         text-align: center;
-        padding: 60px 20px;
+        padding: 40px 15px;
       }
 
-      .header-section h3 {
+      .header h3 {
+        margin: 0;
         font-weight: 700;
-        font-size: 2.5rem;
-        letter-spacing: 1px;
+        font-size: 2.2rem;
       }
 
-      /* PDF Viewer Section */
-      .pdf-container {
-        position: relative;
+      .pdf-viewer {
         width: 100%;
-        height: calc(100vh - 180px);
+        height: calc(100vh - 160px);
+        overflow: auto;
         display: flex;
-        justify-content: center;
+        flex-direction: column;
         align-items: center;
+        background: #f8f9fa;
+        scroll-behavior: smooth;
       }
 
-      .pdf-frame {
-        width: 90%;
-        height: 90%;
-        border: none;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+      canvas {
+        margin: 20px auto;
+        max-width: 100%;
+        height: auto;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         border-radius: 10px;
-        background-color: white;
-        transition: opacity 0.5s ease;
-        opacity: 0;
       }
 
-      .pdf-frame.loaded {
-        opacity: 1;
-      }
-
-      /* Floating Button */
       .floating-btn {
         position: fixed;
-        bottom: 30px;
-        right: 30px;
+        bottom: 25px;
+        right: 25px;
         background: #f4a359;
         color: #2e4940;
         border: none;
@@ -87,74 +68,36 @@
         font-size: 16px;
         font-weight: 600;
         box-shadow: 0 5px 15px rgba(0, 0, 0, 0.25);
-        transition: all 0.3s ease;
         text-decoration: none;
+        transition: all 0.3s ease;
+        z-index: 1000;
       }
 
       .floating-btn:hover {
         background: #e59445;
+        color: #fff;
         transform: translateY(-2px);
-        color: #ffffff;
-      }
-
-      /* Responsive Adjustments */
-      @media (max-width: 992px) {
-        .header-section h3 {
-          font-size: 2rem;
-        }
-
-        .pdf-container {
-          height: calc(100vh - 160px);
-        }
       }
 
       @media (max-width: 768px) {
-        .pdf-frame {
-          width: 95%;
-          height: 85%;
+        .header h3 {
+          font-size: 1.6rem;
         }
-
-        .floating-btn {
-          bottom: 20px;
-          right: 20px;
-          padding: 12px 20px;
-          font-size: 14px;
-        }
-      }
-
-      @media (max-width: 576px) {
-        .header-section {
-          padding: 40px 15px;
-        }
-
-        .pdf-container {
-          height: calc(100vh - 140px);
-        }
-
-        .pdf-frame {
-          height: 80%;
+        canvas {
+          width: 95% !important;
+          height: auto !important;
         }
       }
     </style>
   </head>
 
   <body>
-    <!-- Header -->
-    <header class="header-section">
+    <header class="header">
       <h3>Menu Kesuma</h3>
     </header>
 
-    <!-- PDF Section -->
-    <main class="pdf-container">
-      <iframe
-        src="./static/menu_kesuma_baru.pdf"
-        class="pdf-frame"
-        title="Menu Kesuma PDF"
-        onload="this.classList.add('loaded')"
-      ></iframe>
-    </main>
+    <main class="pdf-viewer" id="pdf-viewer"></main>
 
-    <!-- Floating Button -->
     <a
       href="https://api.whatsapp.com/send?phone=628159358515&text=Haloo+aku+calon+Member+Kesuma+%F0%9F%91%89%F0%9F%91%88"
       target="_blank"
@@ -163,8 +106,36 @@
       <i class="fab fa-whatsapp mr-2"></i> Join Member
     </a>
 
-    <!-- JS -->
-    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.bundle.min.js"></script>
+    <!-- ✅ PDF.js via CDN (v4.x) -->
+    <script type="module">
+      import * as pdfjsLib from "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.min.mjs";
+
+      // Set worker dari CDN juga
+      pdfjsLib.GlobalWorkerOptions.workerSrc =
+        "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.worker.min.mjs";
+
+      const url = "static/menu_kesuma_baru.pdf";
+      const container = document.getElementById("pdf-viewer");
+
+      // Render PDF
+      pdfjsLib.getDocument(url).promise.then((pdf) => {
+        for (let i = 1; i <= pdf.numPages; i++) {
+          pdf.getPage(i).then((page) => {
+            const viewport = page.getViewport({ scale: 1.4 });
+            const canvas = document.createElement("canvas");
+            const context = canvas.getContext("2d");
+            canvas.height = viewport.height;
+            canvas.width = viewport.width;
+
+            container.appendChild(canvas);
+
+            page.render({
+              canvasContext: context,
+              viewport: viewport,
+            });
+          });
+        }
+      });
+    </script>
   </body>
 </html>
