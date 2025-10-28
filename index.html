@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>Menu Kesuma</title>
+    <title>Kopi 16 Pro</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <!-- Font -->
@@ -25,22 +25,16 @@
       }
 
       .header {
-        background-color: #2e4940;
+        background-color: #490303;
         color: white;
         text-align: center;
-        padding: 40px 15px;
-      }
-
-      .header h3 {
-        margin: 0;
-        font-weight: 700;
-        font-size: 2.2rem;
+        padding: 20px 15px;
       }
 
       .pdf-viewer {
         width: 100%;
         height: calc(100vh - 160px);
-        overflow: auto;
+        overflow-y: auto;
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -56,12 +50,26 @@
         border-radius: 10px;
       }
 
+      /* Loader */
+      #loader {
+        text-align: center;
+        padding: 40px;
+        font-weight: 600;
+        color: #490303;
+        animation: blink 1.2s infinite;
+      }
+      @keyframes blink {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+      }
+
+      /* WhatsApp Button */
       .floating-btn {
         position: fixed;
         bottom: 25px;
         right: 25px;
-        background: #f4a359;
-        color: #2e4940;
+        background: #f73737;
+        color: #fffee3;
         border: none;
         border-radius: 50px;
         padding: 14px 26px;
@@ -74,68 +82,121 @@
       }
 
       .floating-btn:hover {
-        background: #e59445;
+        background: #490303;
         color: #fff;
         transform: translateY(-2px);
       }
 
-      @media (max-width: 768px) {
-        .header h3 {
-          font-size: 1.6rem;
-        }
-        canvas {
-          width: 95% !important;
-          height: auto !important;
-        }
+      /* Move Up Button */
+      .back-to-top {
+        position: fixed;
+        bottom: 25px;
+        left: 25px;
+        background-color: #490303;
+        color: #fff;
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        font-size: 22px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+        z-index: 1000;
+      }
+
+      .back-to-top.show {
+        opacity: 1;
+        visibility: visible;
+      }
+
+      .back-to-top:hover {
+        background-color: #f73737;
+        transform: translateY(-3px);
       }
     </style>
   </head>
 
   <body>
-    <header class="header" style="padding: 20px 0;">
-  <h2>Menu Kesuma</h2>
-</header>
+    <header class="header">
+      <h2>MENU KOPI 16 PRO</h2>
+    </header>
 
+    <!-- Loader -->
+    <div id="loader">Loading menu...</div>
 
     <main class="pdf-viewer" id="pdf-viewer"></main>
 
+    <!-- WhatsApp Button -->
     <a
-      href="https://api.whatsapp.com/send?phone=628159358515&text=Haloo+aku+calon+Member+Kesuma+%F0%9F%91%89%F0%9F%91%88"
+      href="https://api.whatsapp.com/send?phone=628159358515&text=Haii%20kaa%20aku%20mau%20ikutan%20challenge%20Simpan%20WA%20bisa%20cuan%205jt%20dong%20%F0%9F%99%8C%F0%9F%8F%BB"
       target="_blank"
       class="floating-btn"
     >
       <i class="fab fa-whatsapp mr-2"></i> Join Member
     </a>
 
-    <!-- ✅ PDF.js via CDN (v4.x) -->
+    <!-- Move Up Button -->
+    <a href="#" class="back-to-top" id="backToTop">
+      <i class="fa fa-angle-up"></i>
+    </a>
+
+    <!-- ✅ Optimized PDF.js -->
     <script type="module">
       import * as pdfjsLib from "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.min.mjs";
-
-      // Set worker dari CDN juga
       pdfjsLib.GlobalWorkerOptions.workerSrc =
         "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.worker.min.mjs";
 
-      const url = "static/menu_kesuma_baru.pdf";
+      const url = "static/menu_pro.pdf"; // path PDF
       const container = document.getElementById("pdf-viewer");
+      const loader = document.getElementById("loader");
+      const backToTopBtn = document.getElementById("backToTop");
 
-      // Render PDF
-      pdfjsLib.getDocument(url).promise.then((pdf) => {
-        for (let i = 1; i <= pdf.numPages; i++) {
-          pdf.getPage(i).then((page) => {
-            const viewport = page.getViewport({ scale: 1.4 });
-            const canvas = document.createElement("canvas");
-            const context = canvas.getContext("2d");
-            canvas.height = viewport.height;
-            canvas.width = viewport.width;
+      // ✅ Progressive streaming
+      const loadingTask = pdfjsLib.getDocument({
+        url,
+        rangeChunkSize: 65536, // 64KB per chunk
+      });
 
-            container.appendChild(canvas);
+      loadingTask.promise.then(async (pdf) => {
+        // Render helper
+        const renderPage = async (num) => {
+          const page = await pdf.getPage(num);
+          const viewport = page.getViewport({ scale: 1.4 });
+          const canvas = document.createElement("canvas");
+          const context = canvas.getContext("2d");
+          canvas.height = viewport.height;
+          canvas.width = viewport.width;
+          container.appendChild(canvas);
+          await page.render({ canvasContext: context, viewport }).promise;
+        };
 
-            page.render({
-              canvasContext: context,
-              viewport: viewport,
-            });
-          });
+        // 🚀 Tampilkan halaman pertama secepatnya
+        await renderPage(1);
+        loader.remove();
+
+        // Lazy load halaman sisanya
+        for (let i = 2; i <= pdf.numPages; i++) {
+          setTimeout(() => renderPage(i), 400 * (i - 1)); // 0.4 detik jeda antar halaman
         }
+      });
+
+      // Tombol scroll ke atas
+      container.addEventListener("scroll", () => {
+        if (container.scrollTop > 300) {
+          backToTopBtn.classList.add("show");
+        } else {
+          backToTopBtn.classList.remove("show");
+        }
+      });
+
+      backToTopBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        container.scrollTo({ top: 0, behavior: "smooth" });
       });
     </script>
   </body>
