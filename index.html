@@ -159,7 +159,7 @@
       // ✅ Progressive streaming
       const loadingTask = pdfjsLib.getDocument({
         url,
-        rangeChunkSize: 65536, // 64KB per chunk
+        rangeChunkSize: 1048576, // 64KB per chunk
       });
 
       loadingTask.promise.then(async (pdf) => {
