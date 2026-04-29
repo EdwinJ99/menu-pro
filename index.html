@@ -5,13 +5,11 @@
     <title>Kopi 16 Pro</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <!-- Font -->
     <link
       href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
 
-    <!-- Font Awesome -->
     <link
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
       rel="stylesheet"
@@ -22,6 +20,8 @@
         margin: 0;
         font-family: "Montserrat", sans-serif;
         background-color: #f8f9fa;
+        padding: 0;
+        box-sizing: border-box;
       }
 
       .header {
@@ -31,7 +31,7 @@
         padding: 20px 15px;
       }
 
-         .header h2 {
+      .header h2 {
         margin: 0;
         font-weight: 700;
         font-size: 2rem;
@@ -56,14 +56,49 @@
         border-radius: 10px;
       }
 
-      /* Loader */
+      /* Loader Cover Full Layar */
       #loader {
-        text-align: center;
-        padding: 40px;
-        font-weight: 600;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw; 
+        height: 100vh; 
+        background-color: #f8f9fa; 
+        display: flex;
+        flex-direction: column;
+        justify-content: center; 
+        align-items: center;     
+        z-index: 9999;           
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      .loading-animation {
+        width: 180px; 
+        height: auto;
+        display: block; 
+        margin: 0 auto; 
+        animation: run-bounce 0.6s infinite ease-in-out;
+      }
+
+      #loader p {
+        margin-top: 20px;
+        font-weight: 700;
+        font-size: 1.1rem;
         color: #490303;
+        text-align: center; 
         animation: blink 1.2s infinite;
       }
+
+      /* Animasi Berlari Kopi */
+      @keyframes run-bounce {
+        0%, 100% { transform: translateY(0) rotate(0deg); }
+        25% { transform: translateY(-10px) rotate(-2deg); }
+        50% { transform: translateY(0) rotate(0deg); }
+        75% { transform: translateY(-10px) rotate(2deg); }
+      }
+
       @keyframes blink {
         0%, 100% { opacity: 1; }
         50% { opacity: 0.5; }
@@ -132,12 +167,13 @@
       <h2>MENU KOPI 16 PRO</h2>
     </header>
 
-    <!-- Loader -->
-    <div id="loader">Loading menu...</div>
+    <div id="loader">
+      <img src="static/loading party.png" alt="Loading..." class="loading-animation">
+      <p>Loading menu...</p>
+    </div>
 
     <main class="pdf-viewer" id="pdf-viewer"></main>
 
-    <!-- WhatsApp Button -->
     <a
       href="https://api.whatsapp.com/send?phone=628159358515&text=Kak+mau+join+member+Pro+dong+%F0%9F%98%84"
       target="_blank"
@@ -146,12 +182,10 @@
       <i class="fab fa-whatsapp mr-2"></i> Join Member
     </a>
 
-    <!-- Move Up Button -->
     <a href="#" class="back-to-top" id="backToTop">
       <i class="fa fa-angle-up"></i>
     </a>
 
-    <!-- ✅ Optimized PDF.js -->
     <script type="module">
       import * as pdfjsLib from "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.min.mjs";
       pdfjsLib.GlobalWorkerOptions.workerSrc =
@@ -159,7 +193,6 @@
 
       const url = "static/menu_pro.pdf"; // path PDF
       const container = document.getElementById("pdf-viewer");
-      const loader = document.getElementById("loader");
       const backToTopBtn = document.getElementById("backToTop");
 
       // ✅ Progressive streaming
@@ -183,7 +216,16 @@
 
         // 🚀 Tampilkan halaman pertama secepatnya
         await renderPage(1);
-        loader.remove();
+
+        // Paksa loader animasi kopi tampil selama minimal 1 detik
+        setTimeout(() => {
+          const loader = document.getElementById("loader");
+          if (loader) {
+            loader.style.transition = "opacity 0.5s ease";
+            loader.style.opacity = "0";
+            setTimeout(() => loader.remove(), 500); // Hapus dari layar setelah fade out
+          }
+        }, 1000); // 1000ms = 1 detik
 
         // Lazy load halaman sisanya
         for (let i = 2; i <= pdf.numPages; i++) {
